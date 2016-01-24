@@ -1,6 +1,9 @@
 <?php
 include("config.php");
+ini_set('session.bug_compat_warn', 0);
+ini_set('session.bug_compat_42', 0);
 session_start();
+
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 // username and password sent from Form
