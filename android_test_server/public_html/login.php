@@ -19,8 +19,10 @@ if($count==1)
 {
 session_register("myusername");
 $_SESSION['login_user']=$myusername;
-header("location: welcome.php",true,202);
-
+//header("location: welcome.php",true,202);
+header('Location: http://www.google.com', true, 202);
+echo '<a href="welcome.php"><h1>View profile.</h1></a>';
+exit;
 }
 else
 {
