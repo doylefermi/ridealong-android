@@ -73,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                // Start the Signup activity
+
                 Intent intent = new Intent(getApplicationContext(), SignupActivity.class);
                 startActivityForResult(intent, REQUEST_SIGNUP);
             }
@@ -108,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
-                        // On complete call either onLoginSuccess or onLoginFailed
+
                         Log.e("status", ""+ loginstat);
                         if (loginstat == 1) onLoginSuccess();
                         else onLoginFailed();
@@ -124,7 +124,7 @@ public class LoginActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
 
                 // TODO: Implement successful signup logic here
-                // By default we just finish the Activity and log them in automatically
+
                 this.finish();
             }
         }
@@ -176,17 +176,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             protected String doInBackground(Void... params) {
-
-               /* try {*/
-
                     sendRegistrationIdToBackend();
-
-                /*} catch (IOException ex) {
-                    msg = "Error :" + ex.getMessage();
-                    // If there is an error, don't just keep trying to register.
-                    // Require the user to click a button again, or perform
-                    // exponential back-off.
-                }*/
                 return msg;
             }
 
@@ -194,7 +184,7 @@ public class LoginActivity extends AppCompatActivity {
                 final int MAX_ATTEMPTS = 5;
                 final int BACKOFF_MILLI_SECONDS = 2000;
                 final Random random = new Random();
-                //Log.i(TAG, "registering device (regId = " + regid + ")");
+
                 String serverUrl = "http://doylefermi.site88.net/login.php";
                 Map<String, String> params = new HashMap<String, String>();
 
@@ -203,19 +193,15 @@ public class LoginActivity extends AppCompatActivity {
 
 
                 long backoff = BACKOFF_MILLI_SECONDS + random.nextInt(1000);
-                // Once GCM returns a registration id, we need to register on our server
-                // As the server might be down, we will retry it a couple
-                // times.
+
                 for (int i = 1; i <= MAX_ATTEMPTS; i++) {
                     Log.d(TAG, "Attempt #" + i + " to register");
                     try {
                         post(serverUrl, params);
-                        // displayMessage(context, "Registered");
+
                         return;
                     } catch (IOException e) {
-                        // Here we are simplifying and retrying on any error; in a real
-                        // application, it should retry only on unrecoverable errors
-                        // (like HTTP error code 503).
+
                         Log.e(TAG, "Failed to register on attempt " + i + ":" + e);
                         if (i == MAX_ATTEMPTS) {
                             break;
@@ -224,18 +210,15 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d(TAG, "Sleeping for " + backoff + " ms before retry");
                             Thread.sleep(backoff);
                         } catch (InterruptedException e1) {
-                            // Activity finished before we complete - exit.
+
                             Log.d(TAG, "Thread interrupted: abort remaining retries!");
                             Thread.currentThread().interrupt();
                             return;
                         }
-                        // increase backoff exponentially
+
                         backoff *= 2;
                     }
                 }
-                //  String message = context.getString(R.string.server_register_error,
-                //        MAX_ATTEMPTS);
-                //CommonUtilities.displayMessage(context, message);
 
             }
             private  void post(String endpoint, Map<String, String> params)throws IOException{
@@ -247,7 +230,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 StringBuilder bodyBuilder = new StringBuilder();
                 Iterator<Map.Entry<String, String>> iterator = params.entrySet().iterator();
-                // constructs the POST body using the parameters
+
                 while (iterator.hasNext()) {
                     Map.Entry<String, String> param = iterator.next();
                     bodyBuilder.append(param.getKey()).append('=')
@@ -269,11 +252,11 @@ public class LoginActivity extends AppCompatActivity {
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty("Content-Type",
                             "application/x-www-form-urlencoded;charset=UTF-8");
-                    // post the request
+
                     OutputStream out = conn.getOutputStream();
                     out.write(bytes);
                     out.close();
-                    // handle the response
+
                     int status = conn.getResponseCode();
                     if (status == 202) {
                         loginstat=1;
@@ -287,7 +270,7 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             protected void onPostExecute(String msg) {
-                //setContentView(R.layout.activity_gcm_broadcast_receiver);
+
             }
 
 
