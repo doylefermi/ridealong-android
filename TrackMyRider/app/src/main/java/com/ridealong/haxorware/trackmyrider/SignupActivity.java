@@ -5,6 +5,7 @@ package com.ridealong.haxorware.trackmyrider;
  */
 
         import android.app.ProgressDialog;
+        import android.os.AsyncTask;
         import android.os.Bundle;
         import android.support.v7.app.AppCompatActivity;
         import android.util.Log;
@@ -14,11 +15,26 @@ package com.ridealong.haxorware.trackmyrider;
         import android.widget.TextView;
         import android.widget.Toast;
 
+        import java.io.IOException;
+        import java.io.OutputStream;
+        import java.net.HttpURLConnection;
+        import java.net.MalformedURLException;
+        import java.net.URL;
+        import java.util.HashMap;
+        import java.util.Iterator;
+        import java.util.Map;
+        import java.util.Random;
+
         import butterknife.ButterKnife;
         import butterknife.Bind;
 
 public class SignupActivity extends AppCompatActivity {
     private static final String TAG = "SignupActivity";
+    private static int loginstat = 0;
+    public static String msg="";
+    public static String name="";
+    public static String email="";
+    public static String password="";
 
     @Bind(R.id.input_name) EditText _nameText;
     @Bind(R.id.input_email) EditText _emailText;
@@ -64,19 +80,20 @@ public class SignupActivity extends AppCompatActivity {
         progressDialog.setMessage("Creating Account...");
         progressDialog.show();
 
-        String name = _nameText.getText().toString();
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
+        name = _nameText.getText().toString();
+        email = _emailText.getText().toString();
+        password = _passwordText.getText().toString();
+
+        registerInBackground(email, password);
 
         // TODO: Implement your own signup logic here.
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
-                        // On complete call either onSignupSuccess or onSignupFailed
-                        // depending on success
-                        onSignupSuccess();
-                        // onSignupFailed();
+                        Log.e("status", "" + loginstat);
+                        if (loginstat == 1) onSignupSuccess();
+                        else onSignupFailed();
                         progressDialog.dismiss();
                     }
                 }, 3000);
@@ -125,4 +142,111 @@ public class SignupActivity extends AppCompatActivity {
 
         return valid;
     }
+
+    private static void registerInBackground(final String email, String pwd) {
+
+        new AsyncTask<Void,Void,String>() {
+
+            @Override
+            protected String doInBackground(Void... params) {
+                sendRegistrationIdToBackend();
+                return msg;
+            }
+
+            private void sendRegistrationIdToBackend() {
+                final int MAX_ATTEMPTS = 5;
+                final int BACKOFF_MILLI_SECONDS = 2000;
+                final Random random = new Random();
+
+                String serverUrl = "http://doylefermi.site88.net/newaccount.php";
+                Map<String, String> params = new HashMap<String, String>();
+
+                params.put("name", name);
+                params.put("username", email);
+                params.put("password", password);
+
+
+                long backoff = BACKOFF_MILLI_SECONDS + random.nextInt(1000);
+
+                for (int i = 1; i <= MAX_ATTEMPTS; i++) {
+                    Log.d(TAG, "Attempt #" + i + " to register");
+                    try {
+                        post(serverUrl, params);
+
+                        return;
+                    } catch (IOException e) {
+
+                        Log.e(TAG, "Failed to register on attempt " + i + ":" + e);
+                        if (i == MAX_ATTEMPTS) {
+                            break;
+                        }
+                        try {
+                            Log.d(TAG, "Sleeping for " + backoff + " ms before retry");
+                            Thread.sleep(backoff);
+                        } catch (InterruptedException e1) {
+
+                            Log.d(TAG, "Thread interrupted: abort remaining retries!");
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+
+                        backoff *= 2;
+                    }
+                }
+
+            }
+            private  void post(String endpoint, Map<String, String> params)throws IOException{
+                URL url;
+                try {
+                    url = new URL(endpoint);
+                } catch (MalformedURLException e) {
+                    throw new IllegalArgumentException("invalid url: " + endpoint);
+                }
+                StringBuilder bodyBuilder = new StringBuilder();
+                Iterator<Map.Entry<String, String>> iterator = params.entrySet().iterator();
+
+                while (iterator.hasNext()) {
+                    Map.Entry<String, String> param = iterator.next();
+                    bodyBuilder.append(param.getKey()).append('=')
+                            .append(param.getValue());
+                    if (iterator.hasNext()) {
+                        bodyBuilder.append('&');
+                    }
+                }
+                String body = bodyBuilder.toString();
+                Log.v(TAG, "Posting '" + body+ "' to " + url);
+                byte[] bytes = body.getBytes();
+                HttpURLConnection conn = null;
+                try {
+                    Log.e("URL", "> " + url);
+                    conn = (HttpURLConnection) url.openConnection();
+                    conn.setDoOutput(true);
+                    conn.setUseCaches(false);
+                    conn.setFixedLengthStreamingMode(bytes.length);
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type",
+                            "application/x-www-form-urlencoded;charset=UTF-8");
+
+                    OutputStream out = conn.getOutputStream();
+                    out.write(bytes);
+                    out.close();
+
+                    int status = conn.getResponseCode();
+                    if (status == 202) {
+                        loginstat=1;
+                    }
+                    else{ loginstat=0; Log.e("HTTP status", ""+ status);}
+                } finally {
+                    if (conn != null) {
+                        conn.disconnect();
+                    }
+                }
+            }
+
+            protected void onPostExecute(String msg) {
+
+            }
+
+
+        }.execute(null, null, null);}
 }
