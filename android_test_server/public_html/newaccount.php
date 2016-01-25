@@ -20,7 +20,25 @@ if($insert_row){
 }else{
     die('Error : ('. $db->errno .') '. $mysqli->error);
 }
+/*****************************same as locationpost.php*************************************/
+$sql="SELECT * FROM admin WHERE username='$myusername';";
+$result=mysqli_query($db,$sql);
 
+$mylatitude=0;
+$mylongitude=0;
+$myrstatus=0;
+$myconnecter=0;
+if ($result->num_rows > 0) {
+	$row = $result->fetch_assoc();
+	$id=$row["id"];
+	$sql1="INSERT into location (id,latitude,longitude,rstatus,connecter)values('$id','$mylatitude','$mylongitude','$myrstatus','$myconnecter');";
+	$result1=mysqli_query($db,$sql1);
+	$data = array('username'=>$myusername, 'latitude'=>$mylatitude, 'longitude'=>$mylongitude,'rstatus'=>$myrstatus,'connecter'=>$myconnecter);
+	header('Content-Type: application/json');
+	echo json_encode($data);
+}
+else { echo "0 results";}
+/*****************************same as locationpost.php*************************************/
 }
 ?>
 <form action="" method="post">

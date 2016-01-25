@@ -5,6 +5,8 @@ package com.ridealong.haxorware.trackmyrider;
  */
 
         import android.app.ProgressDialog;
+        import android.content.Context;
+        import android.content.SharedPreferences;
         import android.os.AsyncTask;
         import android.os.Bundle;
         import android.support.v7.app.AppCompatActivity;
@@ -35,6 +37,8 @@ public class SignupActivity extends AppCompatActivity {
     public static String name="";
     public static String email="";
     public static String password="";
+    SharedPreferences sharedpreferences;
+    public static String uname="";
 
     @Bind(R.id.input_name) EditText _nameText;
     @Bind(R.id.input_email) EditText _emailText;
@@ -79,7 +83,7 @@ public class SignupActivity extends AppCompatActivity {
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Creating Account...");
         progressDialog.show();
-
+        sharedpreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         name = _nameText.getText().toString();
         email = _emailText.getText().toString();
         password = _passwordText.getText().toString();
@@ -92,7 +96,13 @@ public class SignupActivity extends AppCompatActivity {
                 new Runnable() {
                     public void run() {
                         Log.e("status", "" + loginstat);
-                        if (loginstat == 1) onSignupSuccess();
+                        if (loginstat == 1) {
+                            SharedPreferences.Editor editor = sharedpreferences.edit();
+                            editor.putString("username", email);
+                            Log.e("commiting username", "" + email);
+                            editor.commit();
+                            onSignupSuccess();
+                        }
                         else onSignupFailed();
                         progressDialog.dismiss();
                     }
