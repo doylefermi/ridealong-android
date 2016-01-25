@@ -4,6 +4,8 @@ package com.ridealong.haxorware.trackmyrider;
  * Created by haxorware on 23/1/16.
  */
         import android.app.ProgressDialog;
+        import android.content.Context;
+        import android.content.SharedPreferences;
         import android.os.AsyncTask;
         import android.os.Bundle;
         import android.support.v7.app.AppCompatActivity;
@@ -54,7 +56,7 @@ public class LoginActivity extends AppCompatActivity {
     @Bind(R.id.input_password) EditText _passwordText;
     @Bind(R.id.btn_login) Button _loginButton;
     @Bind(R.id.link_signup) TextView _signupLink;
-
+    SharedPreferences sharedpreferences;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,7 +100,7 @@ public class LoginActivity extends AppCompatActivity {
 
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
-
+        sharedpreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         uname=email;
         pass=password;
         registerInBackground(email,password);
@@ -110,7 +112,14 @@ public class LoginActivity extends AppCompatActivity {
                     public void run() {
 
                         Log.e("status", ""+ loginstat);
-                        if (loginstat == 1) onLoginSuccess();
+                        if (loginstat == 1) {
+
+                            SharedPreferences.Editor editor = sharedpreferences.edit();
+                            editor.putString("username", uname);
+                            Log.e("commiting username", "" + uname);
+                            editor.commit();
+                            onLoginSuccess();
+                        }
                         else onLoginFailed();
                         progressDialog.dismiss();
                     }
