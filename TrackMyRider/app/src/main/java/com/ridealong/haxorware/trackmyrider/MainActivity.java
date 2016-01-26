@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -57,17 +58,24 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
         if(uname=="") {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
-
         }
         else{Toast.makeText(getBaseContext(), "Signed in as "+userprefs, Toast.LENGTH_LONG).show();}
 
-
-
-        Log.e("Retrieval 2nd userprefs", ""+ uname);
-
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 1, this);
+        Log.e("Retrieval 2nd userprefs", ""+ uname);
+        Criteria criteria = new Criteria();
+        criteria.setPowerRequirement(Criteria.POWER_LOW);
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        String bestprovider = locationManager.getBestProvider(criteria,false);
+        Location lastknownlocation = locationManager.getLastKnownLocation(bestprovider);
+
+        lastupdated(lastknownlocation);
+
+
+
+        locationManager.requestLocationUpdates(bestprovider, 500, 1, this);
+        lastupdated(lastknownlocation);
 
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
@@ -76,6 +84,20 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
         }
 
 
+    }
+
+    public void lastupdated(Location location) {
+        shared = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        userprefs = (shared.getString("username", ""));
+        uname=userprefs;
+
+        TextView textView = (TextView) findViewById(R.id.textView);
+        lat=location.getLatitude();
+        lon=location.getLongitude();
+        String msg = "Latitude: " + lat + "\nLongitude: " + lon;
+        textView.setText(msg);
+        Log.d(TAG, "Last known:" + msg);
+        updatelocation(uname, location.getLatitude(), location.getLongitude());
     }
 
     @Override
@@ -89,7 +111,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
         lon=location.getLongitude();
         String msg = "Latitude: " + lat + "\nLongitude: " + lon;
         textView.setText(msg);
-
+        Log.d(TAG, "Updated:" + msg);
         updatelocation(uname,location.getLatitude(),location.getLongitude());
     }
     @Override
